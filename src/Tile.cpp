@@ -4,6 +4,10 @@
 #include "Tile.hpp"
 #include <cmath>
 
+SlideAnim::SlideAnim(sf::Vector2f target, sf::Time time)
+: m_target(target)
+, m_end(time) {}
+
 static std::pair<sf::Color, sf::Color> colour_of(unsigned value) {
 	switch (value) {
 		case 1: return {{238, 228, 218}, {119, 110, 101}};
@@ -30,15 +34,38 @@ bool Tile::operator==(const Tile & other) const {
 	return m_value == other.m_value;
 }
 
-void Tile::slide(sf::Vector2f new_location, float time) {
-	auto centered = new_location;
-	centered += {65.f, 65.f};
+void Tile::slide(sf::Vector2f new_location, sf::Time time) {
+	m_anim.push(SlideAnim{new_location, time});
+}
 
-	m_graphic.setPosition(new_location);
-	m_text.setPosition(centered);
+static sf::Vector2f lerp(sf::Vector2f a, sf::Vector2f b, float t) {
+	return {
+		a.x + t * (b.x - a.x),
+		a.y + t * (b.y - a.y)
+	};
 }
 
 void Tile::update(float dt) {
+	if (m_anim.size()) {
+		auto curr = m_anim.front();
+
+		if (!curr.m_begin) {
+			curr.m_begin = m_graphic.getPosition();
+		}
+
+		auto progress = curr.m_clock.getElapsedTime().asSeconds() / curr.m_end.asSeconds();
+		progress = std::min(progress, 1.f);
+
+		auto position = lerp(*curr.m_begin, curr.m_target, progress);
+		auto centered = position + sf::Vector2f{65.f, 65.f};
+
+		m_graphic.setPosition(position);
+		m_text.setPosition(centered);
+
+		if (progress == 1.f) {
+			m_anim.pop();
+		}
+	}
 }
 
 void Tile::set_value(unsigned new_value) {

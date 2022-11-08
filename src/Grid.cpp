@@ -48,8 +48,8 @@ void Grid::update(float dt) {
 		process_input();
 	}
 
-	for (auto column : m_tiles) {
-		for (auto tile : column) {
+	for (auto & column : m_tiles) {
+		for (auto & tile : column) {
 			if (tile) {
 				tile.value().update(dt);
 			}
@@ -89,7 +89,7 @@ void Grid::spawn_new() {
 
 	auto & tile = m_tiles[new_location.x][new_location.y].emplace(m_font);
 	tile.set_value(new_value);
-	tile.slide(calculate_tile_position(new_location), 0);
+	tile.slide(calculate_tile_position(new_location), sf::seconds(0));
 }
 
 std::vector<Coord> Grid::get_empty() const {
@@ -110,6 +110,8 @@ void Grid::process_input() {
 	m_move_queue.pop();
 	unsigned score_bonus = 0;
 
+	sf::Time move_speed = sf::seconds(0.5);
+
 	switch (move) {
 		case Move::Up: {
 			decltype(m_tiles) new_tiles{};
@@ -118,7 +120,7 @@ void Grid::process_input() {
 				for (std::size_t y = 0; y < 4; y++) {
 					if (m_tiles[x][y]) {
 						new_tiles[x][current_empty] = *m_tiles[x][y];
-						new_tiles[x][current_empty]->slide(calculate_tile_position({x, current_empty}), 1.f);
+						new_tiles[x][current_empty]->slide(calculate_tile_position({x, current_empty}), move_speed);
 						current_empty++;
 					}
 				}
@@ -146,7 +148,7 @@ void Grid::process_input() {
 				for (std::size_t x = 0; x < 4; x++) {
 					if (m_tiles[x][y]) {
 						new_tiles[current_empty][y] = *m_tiles[x][y];
-						new_tiles[current_empty][y]->slide(calculate_tile_position({current_empty, y}), 1.f);
+						new_tiles[current_empty][y]->slide(calculate_tile_position({current_empty, y}), move_speed);
 						current_empty++;
 					}
 				}
@@ -175,7 +177,7 @@ void Grid::process_input() {
 					auto y = 3 - ym;
 					if (m_tiles[x][y]) {
 						new_tiles[x][current_empty] = *m_tiles[x][y];
-						new_tiles[x][current_empty]->slide(calculate_tile_position({x, current_empty}), 1.f);
+						new_tiles[x][current_empty]->slide(calculate_tile_position({x, current_empty}), move_speed);
 						current_empty--;
 					}
 				}
@@ -205,7 +207,7 @@ void Grid::process_input() {
 					auto x = 3 - xm;
 					if (m_tiles[x][y]) {
 						new_tiles[current_empty][y] = *m_tiles[x][y];
-						new_tiles[current_empty][y]->slide(calculate_tile_position({current_empty, y}), 1.f);
+						new_tiles[current_empty][y]->slide(calculate_tile_position({current_empty, y}), move_speed);
 						current_empty--;
 					}
 				}
