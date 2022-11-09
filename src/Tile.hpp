@@ -7,14 +7,17 @@
 #include "Sqroundre.hpp"
 #include <queue>
 #include <optional>
+#include <variant>
 
 struct SlideAnim {
-	SlideAnim(sf::Vector2f target, sf::Time time);
+	SlideAnim(sf::Vector2f target, float time);
 	sf::Vector2f m_target;
 
-	sf::Clock m_clock;
-	sf::Time m_end;
-	std::optional<sf::Vector2f> m_begin;
+	sf::Vector2f m_begin;
+	float m_end;
+};
+
+struct PopAnim {
 };
 
 class Tile : public sf::Drawable {
@@ -23,7 +26,9 @@ public:
 
 	bool operator==(const Tile & other) const;
 
-	void slide(sf::Vector2f new_location, sf::Time time);
+	void slide(sf::Vector2f new_location, float time);
+	void pop();
+
 	void update(float dt);
 	void set_value(unsigned new_value);
 	void increase_value();
@@ -37,5 +42,7 @@ private:
 	Sqroundre m_graphic;
 	sf::Text m_text;
 
-	std::queue<SlideAnim> m_anim;
+	float m_clock;
+	float m_progress;
+	std::queue<std::variant<SlideAnim, PopAnim>> m_anim;
 };

@@ -9,7 +9,7 @@
 
 class Sqroundre : public sf::Transformable, public sf::Drawable {
 public:
-	void create(sf::Vector2f size, float radius, sf::Color color);
+	void create(sf::Vector2f size, float radius, sf::Color color, bool centered = false);
 	sf::FloatRect getGlobalBounds() const;
 	virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const override;
 

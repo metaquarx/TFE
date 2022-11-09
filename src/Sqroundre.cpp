@@ -3,7 +3,7 @@
 
 #include "Sqroundre.hpp"
 
-void Sqroundre::create(sf::Vector2f size, float radius, sf::Color color) {
+void Sqroundre::create(sf::Vector2f size, float radius, sf::Color color, bool centered) {
 	m_corners[0].setRadius(radius); // top-left
 	m_corners[0].setPosition(0, 0);
 	m_corners[0].setFillColor(color);
@@ -27,6 +27,15 @@ void Sqroundre::create(sf::Vector2f size, float radius, sf::Color color) {
 	m_corners[3].setRadius(radius); // bottom-right
 	m_corners[3].setPosition(size.x - radius - radius, size.y - radius - radius);
 	m_corners[3].setFillColor(color);
+
+	if (centered) {
+		m_vertical.setOrigin(size / 2.f);
+		m_horizontal.setOrigin(size / 2.f);
+		m_corners[0].setOrigin(size / 2.f);
+		m_corners[1].setOrigin(size / 2.f);
+		m_corners[2].setOrigin(size / 2.f);
+		m_corners[3].setOrigin(size / 2.f);
+	}
 }
 
 sf::FloatRect Sqroundre::getGlobalBounds() const {

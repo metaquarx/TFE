@@ -11,8 +11,8 @@
 
 static sf::Vector2f calculate_tile_position(Coord coord) {
 	return {
-		7.f + 14.f + (static_cast<float>(coord.x) * (129.f + 14.f)),
-		207.f + 14.f + (static_cast<float>(coord.y) * (129.f + 14.f))
+		7.f + 14.f + (static_cast<float>(coord.x) * (129.f + 14.f)) + 64.f,
+		207.f + 14.f + (static_cast<float>(coord.y) * (129.f + 14.f)) + 64.f
 	};
 }
 
@@ -28,7 +28,7 @@ void Grid::draw(sf::RenderTarget & target, sf::RenderStates states) const {
 	for (std::size_t i = 0; i < 4; i++) {
 		for (std::size_t j = 0; j < 4; j++) {
 			Sqroundre empty;
-			empty.create({129, 129}, 6, sf::Color(205, 193, 180));
+			empty.create({129, 129}, 6, sf::Color(205, 193, 180), true);
 			empty.setPosition(calculate_tile_position({i, j}));
 			target.draw(empty);
 		}
@@ -89,7 +89,8 @@ void Grid::spawn_new() {
 
 	auto & tile = m_tiles[new_location.x][new_location.y].emplace(m_font);
 	tile.set_value(new_value);
-	tile.slide(calculate_tile_position(new_location), sf::seconds(0));
+	tile.slide(calculate_tile_position(new_location), 0);
+	tile.pop();
 }
 
 std::vector<Coord> Grid::get_empty() const {
@@ -110,7 +111,7 @@ void Grid::process_input() {
 	m_move_queue.pop();
 	unsigned score_bonus = 0;
 
-	sf::Time move_speed = sf::seconds(0.5);
+	float move_speed = 0.1f;
 
 	switch (move) {
 		case Move::Up: {

@@ -3,10 +3,13 @@
 
 #include "Tile.hpp"
 #include <cmath>
+#include <limits>
+#include <variant>
 
-SlideAnim::SlideAnim(sf::Vector2f target, sf::Time time)
+SlideAnim::SlideAnim(sf::Vector2f target, float time)
 : m_target(target)
-, m_end(time) {}
+, m_end(std::max(time, std::numeric_limits<float>::min())) {
+}
 
 static std::pair<sf::Color, sf::Color> colour_of(unsigned value) {
 	switch (value) {
@@ -26,7 +29,8 @@ static std::pair<sf::Color, sf::Color> colour_of(unsigned value) {
 }
 
 Tile::Tile(const sf::Font & font)
-: m_value(0) {
+: m_value(0)
+, m_progress(1.f) {
 	m_text.setFont(font);
 }
 
@@ -34,8 +38,12 @@ bool Tile::operator==(const Tile & other) const {
 	return m_value == other.m_value;
 }
 
-void Tile::slide(sf::Vector2f new_location, sf::Time time) {
+void Tile::slide(sf::Vector2f new_location, float time) {
 	m_anim.push(SlideAnim{new_location, time});
+}
+
+void Tile::pop() {
+	m_anim.push(PopAnim());
 }
 
 static sf::Vector2f lerp(sf::Vector2f a, sf::Vector2f b, float t) {
@@ -46,24 +54,58 @@ static sf::Vector2f lerp(sf::Vector2f a, sf::Vector2f b, float t) {
 }
 
 void Tile::update(float dt) {
+	m_clock += dt;
+
 	if (m_anim.size()) {
-		auto curr = m_anim.front();
+		auto & current = m_anim.front();
 
-		if (!curr.m_begin) {
-			curr.m_begin = m_graphic.getPosition();
-		}
+		if (std::holds_alternative<SlideAnim>(current)) {
+			auto & curr = std::get<SlideAnim>(current);
 
-		auto progress = curr.m_clock.getElapsedTime().asSeconds() / curr.m_end.asSeconds();
-		progress = std::min(progress, 1.f);
+			if (m_progress == 1.f) {
+				m_clock = 0.f;
+				curr.m_begin = m_graphic.getPosition();
+			}
 
-		auto position = lerp(*curr.m_begin, curr.m_target, progress);
-		auto centered = position + sf::Vector2f{65.f, 65.f};
+			m_progress = m_clock / curr.m_end;
+			m_progress = std::min(m_progress, 1.f);
 
-		m_graphic.setPosition(position);
-		m_text.setPosition(centered);
+			auto position = lerp(curr.m_begin, curr.m_target, m_progress);
 
-		if (progress == 1.f) {
-			m_anim.pop();
+			m_graphic.setPosition(position);
+			m_text.setPosition(position);
+
+			if (m_progress == 1.f) {
+				m_anim.pop();
+				if (curr.m_end == std::numeric_limits<float>::min()) {
+					update(dt);
+				}
+			}
+
+		} else if (std::holds_alternative<PopAnim>(current)) {
+			constexpr float pop_duration = .2f;
+
+			auto i = [](float t) {
+				return std::pow(t, 2.5f);
+			};
+			auto pop = [&](float t) {
+				return t < .9f ? i(t / .9f) : i((1 - t) / .82f) + 1.f;
+			};
+
+			if (m_progress == 1.f) {
+				m_clock = 0.f;
+			}
+
+			m_progress = m_clock / pop_duration;
+			m_progress = std::min(m_progress, 1.f);
+
+			float scale = pop(m_progress);
+			m_graphic.setScale({scale, scale});
+			m_text.setScale({scale, scale});
+
+			if (m_progress == 1.f) {
+				m_anim.pop();
+			}
 		}
 	}
 }
@@ -72,7 +114,7 @@ void Tile::set_value(unsigned new_value) {
 	m_value = new_value;
 	auto new_colours = colour_of(new_value);
 
-	m_graphic.create({129, 129}, 6, new_colours.first);
+	m_graphic.create({129, 129}, 6, new_colours.first, true);
 	m_text.setFillColor(new_colours.second);
 	m_text.setString(std::to_string(static_cast<unsigned>(std::pow(2, new_value))));
 
@@ -80,7 +122,7 @@ void Tile::set_value(unsigned new_value) {
 	do {
 		m_text.setCharacterSize(text_size);
 		auto lb = m_text.getLocalBounds();
-		m_text.setOrigin(sf::Vector2f{std::trunc(lb.left + lb.width/2), std::trunc(lb.top + lb.height/2)});
+		m_text.setOrigin(sf::Vector2f{lb.left + lb.width/2, lb.top + lb.height/2});
 
 		text_size--;
 	} while (m_text.getGlobalBounds().width > 129.f);
