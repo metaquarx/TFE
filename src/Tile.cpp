@@ -32,6 +32,9 @@ Tile::Tile(const sf::Font & font)
 : m_value(0)
 , m_progress(1.f) {
 	m_text.setFont(font);
+
+	m_graphic.setPosition({999, 999});
+	m_text.setPosition({999, 999});
 }
 
 bool Tile::operator==(const Tile & other) const {
