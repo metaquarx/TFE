@@ -33,7 +33,8 @@ private:
 	Sqroundre m_background;
 	const sf::Font & m_font;
 
-	std::array<std::array<std::optional<Tile>, 4>, 4> m_tiles;
+	using TileMap = std::array<std::array<std::optional<Tile>, 4>, 4>;
+	TileMap m_tiles;
 	std::queue<Move> m_move_queue;
 	unsigned m_score;
 

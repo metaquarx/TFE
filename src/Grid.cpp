@@ -114,99 +114,64 @@ void Grid::process_input() {
 	bool positive{move == Move::Up || move == Move::Left};
 	bool inverse{move == Move::Left || move == Move::Right};
 
-	decltype(m_tiles) new_tiles{};
-	for (std::size_t i = 0; i < 4; i++) {
-		std::size_t current_empty = positive ? 0 : 3;
-		for (std::size_t j = 0; j < 4; j++) {
-			std::size_t x = (inverse) ? j : i;
-			std::size_t y = (inverse) ? i : j;
-			x = positive ? x : 3 - x;
-			y = positive ? y : 3 - y;
+	auto shift = [&](const TileMap & input) {
+		TileMap new_tiles{};
+		for (std::size_t i = 0; i < 4; i++) {
+			std::size_t current_empty = positive ? 0 : 3;
+			for (std::size_t j = 0; j < 4; j++) {
+				auto x{inverse ? j : i};
+				auto y{inverse ? i : j};
+				x = positive ? x : 3 - x;
+				y = positive ? y : 3 - y;
 
-			auto xm = !inverse ? x : current_empty;
-			auto ym = !inverse ? current_empty : y;
+				auto xm = inverse ? current_empty : x;
+				auto ym = inverse ? y : current_empty;
 
-			if (m_tiles[x][y]) {
-				new_tiles[xm][ym] = *m_tiles[x][y];
-				new_tiles[xm][ym]->slide(calculate_tile_position({xm, ym}), move_speed);
+				if (input[x][y]) {
+					new_tiles[xm][ym] = *input[x][y];
+					new_tiles[xm][ym]->slide(calculate_tile_position({xm, ym}), move_speed);
 
-				if (positive) {
-					current_empty++;
-				} else {
-					current_empty--;
+					if (positive) {
+						current_empty++;
+					} else {
+						current_empty--;
+					}
 				}
 			}
 		}
+
+		return new_tiles;
+	};
+
+	auto combine = [&](const TileMap & input) {
+		TileMap new_tiles{input};
+		for (std::size_t i = 0; i < 4; i++) {
+			for (std::size_t j = 0; j < 3; j++) {
+				auto x{inverse ? j : i};
+				auto y{inverse ? i : j};
+				x = move == Move::Right ? 3 - x : x;
+				y = move == Move::Down ? 3 - y : y;
+
+				auto xm = x + (move == Move::Left) - (move == Move::Right);
+				auto ym = y + (move == Move::Up) - (move == Move::Down);
+
+				if (new_tiles[x][y] && new_tiles[xm][ym] && new_tiles[x][y]->get_value() == new_tiles[xm][ym]->get_value()) {
+					new_tiles[x][y]->increase_value();
+					new_tiles[xm][ym].reset();
+					score_bonus += static_cast<unsigned>(std::pow(2, new_tiles[x][y]->get_value()));
+				}
+			}
+		}
+
+		return new_tiles;
+	};
+
+	auto new_tiles{shift(combine(shift(m_tiles)))};
+
+	std::swap(m_tiles, new_tiles);
+	if (m_tiles != new_tiles) {
+		spawn_new();
 	}
 
-
-	switch (move) {
-		case Move::Up: {
-			for (std::size_t x = 0; x < 4; x++) {
-				for (std::size_t y = 0; y < 3; y++) {
-					if (new_tiles[x][y] && new_tiles[x][y + 1] && new_tiles[x][y]->get_value() == new_tiles[x][y + 1]->get_value()) {
-						new_tiles[x][y]->increase_value();
-						new_tiles[x][y + 1].reset();
-						score_bonus += static_cast<unsigned>(std::pow(2, new_tiles[x][y]->get_value()));
-					}
-				}
-			}
-
-			std::swap(m_tiles, new_tiles);
-			if (m_tiles != new_tiles) {
-				spawn_new();
-			}
-		} break;
-		case Move::Left: {
-			for (std::size_t y = 0; y < 4; y++) {
-				for (std::size_t x = 0; x < 3; x++) {
-					if (new_tiles[x][y] && new_tiles[x + 1][y] && new_tiles[x][y]->get_value() == new_tiles[x + 1][y]->get_value()) {
-						new_tiles[x][y]->increase_value();
-						new_tiles[x + 1][y].reset();
-						score_bonus += static_cast<unsigned>(std::pow(2, new_tiles[x][y]->get_value()));
-					}
-				}
-			}
-
-			std::swap(m_tiles, new_tiles);
-			if (m_tiles != new_tiles) {
-				spawn_new();
-			}
-		} break;
-		case Move::Down: {
-			for (std::size_t x = 0; x < 4; x++) {
-				for (std::size_t ym = 0; ym < 3; ym++) {
-					auto y = 3 - ym;
-					if (new_tiles[x][y] && new_tiles[x][y - 1] && new_tiles[x][y]->get_value() == new_tiles[x][y - 1]->get_value()) {
-						new_tiles[x][y]->increase_value();
-						new_tiles[x][y - 1].reset();
-						score_bonus += static_cast<unsigned>(std::pow(2, new_tiles[x][y]->get_value()));
-					}
-				}
-			}
-
-			std::swap(m_tiles, new_tiles);
-			if (m_tiles != new_tiles) {
-				spawn_new();
-			}
-		} break;
-		case Move::Right: {
-			for (std::size_t y = 0; y < 4; y++) {
-				for (std::size_t xm = 0; xm < 3; xm++) {
-					auto x = 3 - xm;
-					if (new_tiles[x][y] && new_tiles[x - 1][y] && new_tiles[x][y] == new_tiles[x - 1][y]) {
-						new_tiles[x][y]->increase_value();
-						new_tiles[x - 1][y].reset();
-						score_bonus += static_cast<unsigned>(std::pow(2, new_tiles[x][y]->get_value()));
-					}
-				}
-			}
-
-			std::swap(m_tiles, new_tiles);
-			if (m_tiles != new_tiles) {
-				spawn_new();
-			}
-		} break;
-	}
 	m_score += score_bonus;
 }
