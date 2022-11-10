@@ -4,7 +4,6 @@
 #include "Grid.hpp"
 
 #include "Sqroundre.hpp"
-#include "TextTools.hpp"
 
 #include <random>
 #include <cassert>
@@ -110,23 +109,39 @@ void Grid::process_input() {
 	auto move = m_move_queue.front();
 	m_move_queue.pop();
 	unsigned score_bonus = 0;
-
 	float move_speed = 0.1f;
+
+	bool positive{move == Move::Up || move == Move::Left};
+	bool inverse{move == Move::Left || move == Move::Right};
+
+	decltype(m_tiles) new_tiles{};
+	for (std::size_t i = 0; i < 4; i++) {
+		std::size_t current_empty = positive ? 0 : 3;
+		for (std::size_t j = 0; j < 4; j++) {
+			std::size_t x = (inverse) ? j : i;
+			std::size_t y = (inverse) ? i : j;
+			x = positive ? x : 3 - x;
+			y = positive ? y : 3 - y;
+
+			auto xm = !inverse ? x : current_empty;
+			auto ym = !inverse ? current_empty : y;
+
+			if (m_tiles[x][y]) {
+				new_tiles[xm][ym] = *m_tiles[x][y];
+				new_tiles[xm][ym]->slide(calculate_tile_position({xm, ym}), move_speed);
+
+				if (positive) {
+					current_empty++;
+				} else {
+					current_empty--;
+				}
+			}
+		}
+	}
+
 
 	switch (move) {
 		case Move::Up: {
-			decltype(m_tiles) new_tiles{};
-			for (std::size_t x = 0; x < 4; x++) {
-				std::size_t current_empty = 0;
-				for (std::size_t y = 0; y < 4; y++) {
-					if (m_tiles[x][y]) {
-						new_tiles[x][current_empty] = *m_tiles[x][y];
-						new_tiles[x][current_empty]->slide(calculate_tile_position({x, current_empty}), move_speed);
-						current_empty++;
-					}
-				}
-			}
-
 			for (std::size_t x = 0; x < 4; x++) {
 				for (std::size_t y = 0; y < 3; y++) {
 					if (new_tiles[x][y] && new_tiles[x][y + 1] && new_tiles[x][y]->get_value() == new_tiles[x][y + 1]->get_value()) {
@@ -143,18 +158,6 @@ void Grid::process_input() {
 			}
 		} break;
 		case Move::Left: {
-			decltype(m_tiles) new_tiles{};
-			for (std::size_t y = 0; y < 4; y++) {
-				std::size_t current_empty = 0;
-				for (std::size_t x = 0; x < 4; x++) {
-					if (m_tiles[x][y]) {
-						new_tiles[current_empty][y] = *m_tiles[x][y];
-						new_tiles[current_empty][y]->slide(calculate_tile_position({current_empty, y}), move_speed);
-						current_empty++;
-					}
-				}
-			}
-
 			for (std::size_t y = 0; y < 4; y++) {
 				for (std::size_t x = 0; x < 3; x++) {
 					if (new_tiles[x][y] && new_tiles[x + 1][y] && new_tiles[x][y]->get_value() == new_tiles[x + 1][y]->get_value()) {
@@ -171,19 +174,6 @@ void Grid::process_input() {
 			}
 		} break;
 		case Move::Down: {
-			decltype(m_tiles) new_tiles{};
-			for (std::size_t x = 0; x < 4; x++) {
-				std::size_t current_empty = 3;
-				for (std::size_t ym = 0; ym < 4; ym++) {
-					auto y = 3 - ym;
-					if (m_tiles[x][y]) {
-						new_tiles[x][current_empty] = *m_tiles[x][y];
-						new_tiles[x][current_empty]->slide(calculate_tile_position({x, current_empty}), move_speed);
-						current_empty--;
-					}
-				}
-			}
-
 			for (std::size_t x = 0; x < 4; x++) {
 				for (std::size_t ym = 0; ym < 3; ym++) {
 					auto y = 3 - ym;
@@ -201,19 +191,6 @@ void Grid::process_input() {
 			}
 		} break;
 		case Move::Right: {
-			decltype(m_tiles) new_tiles{};
-			for (std::size_t y = 0; y < 4; y++) {
-				std::size_t current_empty = 3;
-				for (std::size_t xm = 0; xm < 4; xm++) {
-					auto x = 3 - xm;
-					if (m_tiles[x][y]) {
-						new_tiles[current_empty][y] = *m_tiles[x][y];
-						new_tiles[current_empty][y]->slide(calculate_tile_position({current_empty, y}), move_speed);
-						current_empty--;
-					}
-				}
-			}
-
 			for (std::size_t y = 0; y < 4; y++) {
 				for (std::size_t xm = 0; xm < 3; xm++) {
 					auto x = 3 - xm;
