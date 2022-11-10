@@ -20,6 +20,8 @@ struct SlideAnim {
 struct PopAnim {
 };
 
+constexpr float move_speed = 0.1f;
+
 class Tile : public sf::Drawable {
 public:
 	Tile(const sf::Font & font);

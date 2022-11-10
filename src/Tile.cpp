@@ -93,11 +93,11 @@ void Tile::update(float dt) {
 			};
 
 			if (m_progress == 1.f) {
-				m_clock = 0.f;
+				m_clock = -move_speed;
 			}
 
 			m_progress = m_clock / pop_duration;
-			m_progress = std::min(m_progress, 1.f);
+			m_progress = std::clamp(m_progress, 0.f, 1.f);
 
 			float scale = pop(m_progress);
 			m_graphic.setScale({scale, scale});

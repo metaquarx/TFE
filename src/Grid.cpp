@@ -50,7 +50,7 @@ void Grid::update(float dt) {
 	for (auto & column : m_tiles) {
 		for (auto & tile : column) {
 			if (tile) {
-				tile.value().update(dt);
+				tile.value().update(dt * (1.f + static_cast<float>(m_move_queue.size())));
 			}
 		}
 	}
@@ -109,7 +109,6 @@ void Grid::process_input() {
 	auto move = m_move_queue.front();
 	m_move_queue.pop();
 	unsigned score_bonus = 0;
-	float move_speed = 0.1f;
 
 	bool positive{move == Move::Up || move == Move::Left};
 	bool inverse{move == Move::Left || move == Move::Right};
