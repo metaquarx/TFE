@@ -8,6 +8,7 @@ add_executable(TFE
 	"Sqroundre.cpp"
 	"TextTools.cpp"
 	"Tile.cpp"
+	"UI.cpp"
 )
 
 target_compile_features(TFE PUBLIC cxx_std_17)
