@@ -5,6 +5,7 @@
 
 #include <SFML/Graphics/Text.hpp>
 #include "Sqroundre.hpp"
+#include "Tile.hpp"
 
 class UI : public sf::Drawable {
 public:
@@ -14,8 +15,10 @@ public:
 	void update_score(unsigned new_value);
 	void update(float dt);
 
-	void blur(bool on);
-	void show_tutorial(bool on);
+	void show_tutorial();
+	void show_win_screen();
+	void show_lose_screen();
+	void clear();
 
 	sf::Text m_title;
 
@@ -37,12 +40,23 @@ public:
 
 	sf::RectangleShape m_blur;
 	bool m_blurred;
+	bool m_busy;
 
-	bool m_show_tutorial;
 	sf::Text m_tutorial_text;
 	sf::Text m_tutorial_text_bold;
 	sf::Text m_copyright_text;
 
+	sf::Text m_game_over_text;
+	sf::Text m_game_over_continue;
+	sf::Text m_win_text;
+	std::optional<Tile> m_win_tile;
+	sf::Text m_win_continue;
+
 private:
 	float m_blur_progress;
+
+	enum class Content {
+		Tutorial, Win, Lose
+	};
+	Content m_active_content;
 };

@@ -3,10 +3,11 @@
 
 #include "UI.hpp"
 #include "TextTools.hpp"
+#include <iostream>
 
 UI::UI()
 : m_blurred(false)
-, m_show_tutorial(false)
+, m_busy(false)
 , m_blur_progress(0.f) {
 	m_title.setString("2048");
 	m_title.setFillColor(sf::Color(119, 110, 101));
@@ -98,6 +99,26 @@ UI::UI()
 	m_copyright_text.setFillColor(sf::Color(119, 110, 101));
 	m_copyright_text.setCharacterSize(16);
 	m_copyright_text.setPosition({5, 700});
+
+	m_game_over_text.setString("Game over!");
+	m_game_over_text.setFillColor(sf::Color(119, 110, 101));
+	m_game_over_text.setCharacterSize(64);
+	m_game_over_text.setPosition({300, 450});
+
+	m_game_over_continue.setString("Press N to continue");
+	m_game_over_continue.setFillColor(sf::Color(119, 110, 101));
+	m_game_over_continue.setCharacterSize(20);
+	m_game_over_continue.setPosition({300, 500});
+
+	m_win_text.setString("You Win!");
+	m_win_text.setFillColor(sf::Color(119, 110, 101));
+	m_win_text.setCharacterSize(64);
+	m_win_text.setPosition({300, 400});
+
+	m_win_continue.setString("Press ESC to continue");
+	m_win_continue.setFillColor(sf::Color(119, 110, 101));
+	m_win_continue.setCharacterSize(20);
+	m_win_continue.setPosition({300, 600});
 }
 
 void UI::set_font(const sf::Font &regular, const sf::Font &bold) {
@@ -113,9 +134,25 @@ void UI::set_font(const sf::Font &regular, const sf::Font &bold) {
 	m_tutorial_text.setFont(regular);
 	m_tutorial_text_bold.setFont(bold);
 	m_copyright_text.setFont(regular);
+	m_game_over_text.setFont(bold);
+	m_win_text.setFont(bold);
+	m_game_over_continue.setFont(regular);
+	m_win_continue.setFont(regular);
+	center_text(m_game_over_text);
+	center_text(m_win_text);
 	center_text(m_current_score_tag);
 	center_text(m_best_score_tag);
 	center_text(m_new_game_button_text);
+	center_text(m_game_over_continue);
+	center_text(m_win_continue);
+
+	m_win_tile.emplace(bold);
+	for (std::size_t i = 0; i < 11; i++) {
+		m_win_tile->increase_value();
+	}
+	m_win_tile->slide({300, 520}, 0);
+	m_win_tile->update(900);
+	m_win_tile->update(900);
 }
 
 void UI::draw(sf::RenderTarget &target, sf::RenderStates states) const {
@@ -134,10 +171,19 @@ void UI::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 
 	target.draw(m_blur);
 
-	if (m_show_tutorial) {
-		target.draw(m_tutorial_text, states);
-		target.draw(m_tutorial_text_bold, states);
-		target.draw(m_copyright_text, states);
+	if (m_busy) {
+		if (m_active_content == Content::Tutorial) {
+			target.draw(m_tutorial_text, states);
+			target.draw(m_tutorial_text_bold, states);
+			target.draw(m_copyright_text, states);
+		} else if (m_active_content == Content::Lose) {
+			target.draw(m_game_over_text, states);
+			target.draw(m_game_over_continue, states);
+		} else if (m_active_content == Content::Win) {
+			target.draw(m_win_text, states);
+			target.draw(*m_win_tile, states);
+			target.draw(m_win_continue, states);
+		}
 	}
 }
 
@@ -150,11 +196,6 @@ void UI::update_score(unsigned int new_value) {
 	center_text(m_current_score_number);
 	center_text(m_best_score_number);
 }
-
-void UI::blur(bool on) {
-	m_blurred = on;
-}
-
 void UI::update(float dt) {
 	constexpr float bg_max_opacity = 0.8f;
 	constexpr float blur_speed = 8.f;
@@ -169,7 +210,26 @@ void UI::update(float dt) {
 	m_tutorial_text_bold.setFillColor(sf::Color(119, 110, 101, static_cast<sf::Uint8>(255.f * m_blur_progress)));
 }
 
-void UI::show_tutorial(bool on) {
-	m_show_tutorial = on;
-	blur(on);
+void UI::show_tutorial() {
+	m_active_content = Content::Tutorial;
+	m_busy = true;
+	m_blurred = true;
+}
+
+
+void UI::show_win_screen() {
+	m_active_content = Content::Win;
+	m_busy = true;
+	m_blurred = true;
+}
+
+void UI::show_lose_screen() {
+	m_active_content = Content::Lose;
+	m_busy = true;
+	m_blurred = true;
+}
+
+void UI::clear() {
+	m_busy = false;
+	m_blurred = false;
 }

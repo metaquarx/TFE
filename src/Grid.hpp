@@ -26,8 +26,13 @@ public:
 	void update(float dt);
 	void queue_input(Move move);
 	unsigned get_score() const;
+	enum class GameState {Ongoing, Win, Lose};
+	GameState get_state() const;
+	void pass();
 
 	void clear();
+
+
 
 private:
 	Sqroundre m_background;
@@ -37,6 +42,8 @@ private:
 	TileMap m_tiles;
 	std::queue<Move> m_move_queue;
 	unsigned m_score;
+	GameState m_state;
+	bool m_passed;
 
 	std::vector<Coord> get_empty() const;
 	void spawn_new();

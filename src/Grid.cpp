@@ -16,7 +16,9 @@ static sf::Vector2f calculate_tile_position(Coord coord) {
 }
 
 Grid::Grid(const sf::Font & font)
-: m_font{font} {
+: m_font{font}
+, m_state(GameState::Ongoing)
+, m_passed(false) {
 	m_background.create({586, 586}, 6, sf::Color(187, 173, 160));
 	m_background.setPosition({7, 207});
 }
@@ -47,12 +49,34 @@ void Grid::update(float dt) {
 		process_input();
 	}
 
+	bool lost = true;
 	for (auto & column : m_tiles) {
 		for (auto & tile : column) {
 			if (tile) {
 				tile.value().update(dt * (1.f + static_cast<float>(m_move_queue.size())));
+			} else {
+				lost = false;
 			}
 		}
+	}
+	for (std::size_t x = 0; x < 4; x++) {
+		for (std::size_t y = 0; y < 4; y++) {
+			if (y > 0 && y < 3) {
+				if (m_tiles[x][y] == m_tiles[x][y - 1] || m_tiles[x][y] == m_tiles[x][y + 1]) {
+					lost = false;
+				}
+			}
+
+			if (x > 0 && x < 4) {
+				if (m_tiles[x][y] == m_tiles[x - 1][y] || m_tiles[x][y] == m_tiles[x + 1][y]) {
+					lost = false;
+				}
+			}
+		}
+	}
+
+	if (lost && !m_passed) {
+		m_state = GameState::Lose;
 	}
 }
 
@@ -64,10 +88,17 @@ unsigned Grid::get_score() const {
 	return m_score;
 }
 
+void Grid::pass() {
+	m_passed = true;
+	m_state = GameState::Ongoing;
+}
+
 void Grid::clear() {
 	m_tiles.fill({std::nullopt});
 	m_move_queue = {};
 	m_score = 0;
+	m_state = GameState::Ongoing;
+	m_passed = false;
 
 	spawn_new();
 	spawn_new();
@@ -157,7 +188,12 @@ void Grid::process_input() {
 				if (new_tiles[x][y] && new_tiles[xm][ym] && new_tiles[x][y]->get_value() == new_tiles[xm][ym]->get_value()) {
 					new_tiles[x][y]->increase_value();
 					new_tiles[xm][ym].reset();
-					score_bonus += static_cast<unsigned>(std::pow(2, new_tiles[x][y]->get_value()));
+
+					auto new_score{static_cast<unsigned>(std::pow(2, new_tiles[x][y]->get_value()))};
+					score_bonus += new_score;
+					if (new_score == 2048) {
+						m_state = GameState::Win;
+					}
 				}
 			}
 		}
@@ -173,4 +209,8 @@ void Grid::process_input() {
 	}
 
 	m_score += score_bonus;
+}
+
+Grid::GameState Grid::get_state() const {
+	return m_state;
 }

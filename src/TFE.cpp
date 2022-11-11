@@ -51,19 +51,20 @@ void TFE::events() {
 			auto position = m_window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y});
 
 			if (m_ui.m_tutorial_button_text.getGlobalBounds().contains(position)) {
-				m_ui.show_tutorial(!m_ui.m_show_tutorial);
+				m_ui.m_busy ? m_ui.clear() : m_ui.show_tutorial();
 			} else if (m_ui.m_new_game_button.getGlobalBounds().contains(position)) {
 				m_grid->clear();
-				m_ui.show_tutorial(false);
-			}
+				m_ui.clear();			}
 		} else if (event.type == sf::Event::KeyPressed) {
-			if (event.key.code == sf::Keyboard::Escape && m_ui.m_show_tutorial) {
-				m_ui.show_tutorial(false);
-			} else if (event.key.code == sf::Keyboard::Escape && !m_ui.m_show_tutorial) {
+			if (event.key.code == sf::Keyboard::Escape && m_ui.m_busy) {
+				m_ui.clear();
+			} else if (event.key.code == sf::Keyboard::Escape) {
 				m_window.close();
 			} else if (event.key.code == sf::Keyboard::N) {
-				m_ui.show_tutorial(false);
+				m_ui.clear();
 				m_grid->clear();
+			} else if (m_ui.m_busy) {
+				// skip next checks
 			} else if (event.key.code == sf::Keyboard::W || event.key.code == sf::Keyboard::Up) {
 				m_grid->queue_input(Move::Up);
 			} else if (event.key.code == sf::Keyboard::A || event.key.code == sf::Keyboard::Left) {
@@ -83,6 +84,14 @@ void TFE::update() {
 	m_ui.update(dt);
 	m_grid->update(dt);
 	m_ui.update_score(m_grid->get_score());
+
+	auto state = m_grid->get_state();
+	if (state == Grid::GameState::Lose) {
+		m_ui.show_lose_screen();
+	} else if (state == Grid::GameState::Win) {
+		m_ui.show_win_screen();
+		m_grid->pass();
+	}
 }
 
 void TFE::draw() {
@@ -98,7 +107,9 @@ void TFE::show_cursor_hand(bool on) {
 	if (on && !m_cursor_hand) {
 		m_cursor.loadFromSystem(sf::Cursor::Hand);
 		m_window.setMouseCursor(m_cursor);
+		m_cursor_hand = true;
 	} else if (!on && m_cursor_hand) {
+		m_cursor_hand = false;
 		m_cursor.loadFromSystem(sf::Cursor::Arrow);
 		m_window.setMouseCursor(m_cursor);
 	}
