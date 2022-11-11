@@ -121,6 +121,7 @@ void Grid::spawn_new() {
 	tile.set_value(new_value);
 	tile.slide(calculate_tile_position(new_location), 0);
 	tile.pop();
+	tile.fin(false);
 }
 
 std::vector<Coord> Grid::get_empty() const {
@@ -206,6 +207,14 @@ void Grid::process_input() {
 	std::swap(m_tiles, new_tiles);
 	if (m_tiles != new_tiles) {
 		spawn_new();
+	}
+
+	for (auto & column : m_tiles) {
+		for (auto & tile : column) {
+			if (tile) {
+				tile->fin(false);
+			}
+		}
 	}
 
 	m_score += score_bonus;

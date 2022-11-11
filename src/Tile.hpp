@@ -5,7 +5,7 @@
 
 #include "SFML/Graphics/Drawable.hpp"
 #include "Sqroundre.hpp"
-#include <queue>
+#include <deque>
 #include <optional>
 #include <variant>
 
@@ -30,6 +30,7 @@ public:
 
 	void slide(sf::Vector2f new_location, float time);
 	void pop();
+	bool fin(std::optional<bool> value = std::nullopt);
 
 	void update(float dt);
 	void set_value(unsigned new_value);
@@ -46,5 +47,6 @@ private:
 
 	float m_clock;
 	float m_progress;
-	std::queue<std::variant<SlideAnim, PopAnim>> m_anim;
+	std::deque<std::variant<SlideAnim, PopAnim>> m_anim;
+	bool m_fin;
 };

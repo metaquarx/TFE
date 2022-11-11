@@ -30,7 +30,8 @@ static std::pair<sf::Color, sf::Color> colour_of(unsigned value) {
 
 Tile::Tile(const sf::Font & font)
 : m_value(0)
-, m_progress(1.f) {
+, m_progress(1.f)
+, m_fin(false) {
 	m_text.setFont(font);
 
 	m_graphic.setPosition({999, 999});
@@ -42,11 +43,31 @@ bool Tile::operator==(const Tile & other) const {
 }
 
 void Tile::slide(sf::Vector2f new_location, float time) {
-	m_anim.push(SlideAnim{new_location, time});
+	if (fin()) {
+		for (auto &anim : m_anim) {
+			if (std::holds_alternative<SlideAnim>(anim)) {
+				auto & slide = std::get<SlideAnim>(anim);
+				if (slide.m_end == time) {
+					slide.m_target = new_location;
+				}
+			}
+		}
+	}
+
+	m_anim.push_back(SlideAnim{new_location, time});
+	fin(true);
 }
 
 void Tile::pop() {
-	m_anim.push(PopAnim());
+	m_anim.push_back(PopAnim());
+}
+
+bool Tile::fin(std::optional<bool> value) {
+	if (value) {
+		m_fin = *value;
+	}
+
+	return *value;
 }
 
 static sf::Vector2f lerp(sf::Vector2f a, sf::Vector2f b, float t) {
@@ -79,7 +100,7 @@ void Tile::update(float dt) {
 			m_text.setPosition(position);
 
 			if (m_progress == 1.f) {
-				m_anim.pop();
+				m_anim.pop_front();
 				if (curr.m_end == std::numeric_limits<float>::min()) {
 					update(dt);
 				}
@@ -107,7 +128,7 @@ void Tile::update(float dt) {
 			m_text.setScale({scale, scale});
 
 			if (m_progress == 1.f) {
-				m_anim.pop();
+				m_anim.pop_front();
 			}
 		}
 	}
