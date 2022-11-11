@@ -77,22 +77,42 @@ void TFE::events() {
 				}
 			} break;
 			case sf::Event::KeyPressed: {
+				if (!m_ui.m_show_tutorial) {
+					switch (event.key.code) {
+						case sf::Keyboard::W: [[fallthrough]];
+						case sf::Keyboard::Up: {
+							m_grid->queue_input(Move::Up);
+						} break;
+						case sf::Keyboard::A: [[fallthrough]];
+						case sf::Keyboard::Left: {
+							m_grid->queue_input(Move::Left);
+						} break;
+						case sf::Keyboard::S: [[fallthrough]];
+						case sf::Keyboard::Down: {
+							m_grid->queue_input(Move::Down);
+						} break;
+						case sf::Keyboard::D: [[fallthrough]];
+						case sf::Keyboard::Right: {
+							m_grid->queue_input(Move::Right);
+						} break;
+						default: break;
+					}
+				}
 				switch (event.key.code) {
-					case sf::Keyboard::W: [[fallthrough]];
-					case sf::Keyboard::Up: {
-						m_grid->queue_input(Move::Up);
+					case sf::Keyboard::N: {
+						if (m_ui.m_show_tutorial) {
+							m_ui.m_show_tutorial = false;
+							m_ui.blur(false);
+						}
+						m_grid->clear();
 					} break;
-					case sf::Keyboard::A: [[fallthrough]];
-					case sf::Keyboard::Left: {
-						m_grid->queue_input(Move::Left);
-					} break;
-					case sf::Keyboard::S: [[fallthrough]];
-					case sf::Keyboard::Down: {
-						m_grid->queue_input(Move::Down);
-					} break;
-					case sf::Keyboard::D: [[fallthrough]];
-					case sf::Keyboard::Right: {
-						m_grid->queue_input(Move::Right);
+					case sf::Keyboard::Escape: {
+						if (m_ui.m_show_tutorial) {
+							m_ui.m_show_tutorial = false;
+							m_ui.blur(false);
+						} else {
+							m_window.close();
+						}
 					} break;
 					default: break;
 				}
