@@ -13,7 +13,9 @@ public:
 	virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const override;
 	void update_score(unsigned new_value);
 	void update(float dt);
+
 	void blur(bool on);
+	void show_tutorial(bool on);
 
 	sf::Text m_title;
 

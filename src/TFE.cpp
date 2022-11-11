@@ -60,20 +60,10 @@ void TFE::events() {
 				sf::Vector2f position{sf::Vector2i{event.mouseButton.x, event.mouseButton.y}};
 
 				if (m_ui.m_tutorial_button_text.getGlobalBounds().contains(position)) {
-					if (m_ui.m_show_tutorial) {
-						m_ui.blur(false);
-						m_ui.m_show_tutorial = false;
-					} else {
-						m_ui.blur(true);
-						m_ui.m_show_tutorial = true;
-					}
+					m_ui.show_tutorial(!m_ui.m_show_tutorial);
 				} else if (m_ui.m_new_game_button.getGlobalBounds().contains(position)) {
 					m_grid->clear();
-					m_ui.blur(false);
-					if (m_ui.m_show_tutorial) {
-						m_ui.blur(false);
-						m_ui.m_show_tutorial = false;
-					}
+					m_ui.show_tutorial(false);
 				}
 			} break;
 			case sf::Event::KeyPressed: {
@@ -100,16 +90,12 @@ void TFE::events() {
 				}
 				switch (event.key.code) {
 					case sf::Keyboard::N: {
-						if (m_ui.m_show_tutorial) {
-							m_ui.m_show_tutorial = false;
-							m_ui.blur(false);
-						}
+						m_ui.show_tutorial(false);
 						m_grid->clear();
 					} break;
 					case sf::Keyboard::Escape: {
 						if (m_ui.m_show_tutorial) {
-							m_ui.m_show_tutorial = false;
-							m_ui.blur(false);
+							m_ui.show_tutorial(false);
 						} else {
 							m_window.close();
 						}

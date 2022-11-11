@@ -168,3 +168,8 @@ void UI::update(float dt) {
 	m_tutorial_text.setFillColor(sf::Color(119, 110, 101, static_cast<sf::Uint8>(255.f * m_blur_progress)));
 	m_tutorial_text_bold.setFillColor(sf::Color(119, 110, 101, static_cast<sf::Uint8>(255.f * m_blur_progress)));
 }
+
+void UI::show_tutorial(bool on) {
+	m_show_tutorial = on;
+	blur(on);
+}
