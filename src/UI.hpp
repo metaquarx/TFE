@@ -12,6 +12,8 @@ public:
 	void set_font(const sf::Font & regular, const sf::Font & bold);
 	virtual void draw(sf::RenderTarget & target, sf::RenderStates states) const override;
 	void update_score(unsigned new_value);
+	void update(float dt);
+	void blur(bool on);
 
 	sf::Text m_title;
 
@@ -30,4 +32,15 @@ public:
 
 	Sqroundre m_new_game_button;
 	sf::Text m_new_game_button_text;
+
+	sf::RectangleShape m_blur;
+	bool m_blurred;
+
+	bool m_show_tutorial;
+	sf::Text m_tutorial_text;
+	sf::Text m_tutorial_text_bold;
+	sf::Text m_copyright_text;
+
+private:
+	float m_blur_progress;
 };
