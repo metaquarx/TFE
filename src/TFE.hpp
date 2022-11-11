@@ -20,8 +20,6 @@ public:
 private:
 	sf::RenderWindow m_window;
 	sf::Clock m_clock;
-	sf::Cursor m_cursor;
-	bool m_cursor_hand;
 
 	std::unordered_map<std::string, sf::Font> m_fonts;
 
@@ -31,4 +29,8 @@ private:
 	void events();
 	void update();
 	void draw();
+
+	void show_cursor_hand(bool on);
+	sf::Cursor m_cursor;
+	bool m_cursor_hand;
 };

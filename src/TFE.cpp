@@ -36,74 +36,43 @@ bool TFE::run() {
 void TFE::events() {
 	sf::Event event;
 	while (m_window.pollEvent(event)) {
-		switch (event.type) {
-			case sf::Event::Closed: {
+		if (event.type == sf::Event::Closed) {
+			m_window.close();
+		} else if (event.type == sf::Event::MouseMoved) {
+			auto position = m_window.mapPixelToCoords({event.mouseMove.x, event.mouseMove.y});
+
+			if (m_ui.m_tutorial_button_text.getGlobalBounds().contains(position) ||
+				m_ui.m_new_game_button.getGlobalBounds().contains(position)) {
+				show_cursor_hand(true);
+			} else {
+				show_cursor_hand(false);
+			}
+		} else if (event.type == sf::Event::MouseButtonReleased) {
+			auto position = m_window.mapPixelToCoords({event.mouseButton.x, event.mouseButton.y});
+
+			if (m_ui.m_tutorial_button_text.getGlobalBounds().contains(position)) {
+				m_ui.show_tutorial(!m_ui.m_show_tutorial);
+			} else if (m_ui.m_new_game_button.getGlobalBounds().contains(position)) {
+				m_grid->clear();
+				m_ui.show_tutorial(false);
+			}
+		} else if (event.type == sf::Event::KeyPressed) {
+			if (event.key.code == sf::Keyboard::Escape && m_ui.m_show_tutorial) {
+				m_ui.show_tutorial(false);
+			} else if (event.key.code == sf::Keyboard::Escape && !m_ui.m_show_tutorial) {
 				m_window.close();
-			} break;
-			case sf::Event::MouseMoved: {
-				sf::Vector2f position{sf::Vector2i{event.mouseMove.x, event.mouseMove.y}};
-
-				if (m_ui.m_tutorial_button_text.getGlobalBounds().contains(position) ||
-					m_ui.m_new_game_button.getGlobalBounds().contains(position)) {
-					if (!m_cursor_hand) {
-						m_cursor.loadFromSystem(sf::Cursor::Hand);
-						m_window.setMouseCursor(m_cursor);
-						m_cursor_hand = true;
-					}
-				} else if (m_cursor_hand) {
-					m_cursor.loadFromSystem(sf::Cursor::Arrow);
-					m_window.setMouseCursor(m_cursor);
-					m_cursor_hand = false;
-				}
-			} break;
-			case sf::Event::MouseButtonReleased: {
-				sf::Vector2f position{sf::Vector2i{event.mouseButton.x, event.mouseButton.y}};
-
-				if (m_ui.m_tutorial_button_text.getGlobalBounds().contains(position)) {
-					m_ui.show_tutorial(!m_ui.m_show_tutorial);
-				} else if (m_ui.m_new_game_button.getGlobalBounds().contains(position)) {
-					m_grid->clear();
-					m_ui.show_tutorial(false);
-				}
-			} break;
-			case sf::Event::KeyPressed: {
-				if (!m_ui.m_show_tutorial) {
-					switch (event.key.code) {
-						case sf::Keyboard::W: [[fallthrough]];
-						case sf::Keyboard::Up: {
-							m_grid->queue_input(Move::Up);
-						} break;
-						case sf::Keyboard::A: [[fallthrough]];
-						case sf::Keyboard::Left: {
-							m_grid->queue_input(Move::Left);
-						} break;
-						case sf::Keyboard::S: [[fallthrough]];
-						case sf::Keyboard::Down: {
-							m_grid->queue_input(Move::Down);
-						} break;
-						case sf::Keyboard::D: [[fallthrough]];
-						case sf::Keyboard::Right: {
-							m_grid->queue_input(Move::Right);
-						} break;
-						default: break;
-					}
-				}
-				switch (event.key.code) {
-					case sf::Keyboard::N: {
-						m_ui.show_tutorial(false);
-						m_grid->clear();
-					} break;
-					case sf::Keyboard::Escape: {
-						if (m_ui.m_show_tutorial) {
-							m_ui.show_tutorial(false);
-						} else {
-							m_window.close();
-						}
-					} break;
-					default: break;
-				}
-			} break;
-			default: break;
+			} else if (event.key.code == sf::Keyboard::N) {
+				m_ui.show_tutorial(false);
+				m_grid->clear();
+			} else if (event.key.code == sf::Keyboard::W || event.key.code == sf::Keyboard::Up) {
+				m_grid->queue_input(Move::Up);
+			} else if (event.key.code == sf::Keyboard::A || event.key.code == sf::Keyboard::Left) {
+				m_grid->queue_input(Move::Left);
+			} else if (event.key.code == sf::Keyboard::S || event.key.code == sf::Keyboard::Down) {
+				m_grid->queue_input(Move::Down);
+			} else if (event.key.code == sf::Keyboard::D || event.key.code == sf::Keyboard::Right) {
+				m_grid->queue_input(Move::Right);
+			}
 		}
 	}
 }
@@ -123,4 +92,14 @@ void TFE::draw() {
 	m_window.draw(m_ui);
 
 	m_window.display();
+}
+
+void TFE::show_cursor_hand(bool on) {
+	if (on && !m_cursor_hand) {
+		m_cursor.loadFromSystem(sf::Cursor::Hand);
+		m_window.setMouseCursor(m_cursor);
+	} else if (!on && m_cursor_hand) {
+		m_cursor.loadFromSystem(sf::Cursor::Arrow);
+		m_window.setMouseCursor(m_cursor);
+	}
 }
