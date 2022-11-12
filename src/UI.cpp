@@ -31,30 +31,30 @@ UI::UI()
 	m_tutorial_button_text.setPosition({13, 155});
 
 	m_current_score_box.create({150, 80}, 6, sf::Color(187, 173, 160));
-	m_current_score_box.setPosition(286, 16);
+	m_current_score_box.setPosition(286, 33);
 
 	m_current_score_number.setString("0");
 	m_current_score_number.setFillColor(sf::Color::White);
 	m_current_score_number.setCharacterSize(32);
-	m_current_score_number.setPosition({361, 55});
+	m_current_score_number.setPosition({361, 72});
 
 	m_current_score_tag.setString("SCORE");
 	m_current_score_tag.setFillColor(sf::Color(238, 228, 218));
 	m_current_score_tag.setCharacterSize(16);
-	m_current_score_tag.setPosition({361, 32});
+	m_current_score_tag.setPosition({361, 49});
 
 	m_best_score_box.create({150, 80}, 6, sf::Color(187, 173, 160));
-	m_best_score_box.setPosition(443, 16);
+	m_best_score_box.setPosition(443, 33);
 
 	m_best_score_number.setString("0");
 	m_best_score_number.setFillColor(sf::Color::White);
 	m_best_score_number.setCharacterSize(32);
-	m_best_score_number.setPosition({518, 55});
+	m_best_score_number.setPosition({518, 72});
 
 	m_best_score_tag.setString("BEST");
 	m_best_score_tag.setFillColor(sf::Color(238, 228, 218));
 	m_best_score_tag.setCharacterSize(16);
-	m_best_score_tag.setPosition({518, 32});
+	m_best_score_tag.setPosition({518, 49});
 
 	m_new_game_button.create({170, 50}, 6, sf::Color(143, 122, 102));
 	m_new_game_button.setPosition({423, 129});
